@@ -1,0 +1,75 @@
+<%- include('partials/header', { title: 'Log In | Student Study System' }) %>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+  <div class="auth-card-container">
+    <div class="card auth-card">
+      <div class="auth-header">
+        <div class="badge-role">Student Portal</div>
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-desc">Log in to manage your study tasks, coursework, and deadlines.</p>
+      </div>
+
+      <!-- Server & Client Error Alerts Box -->
+      <div id="errorAlertBox" class="alert-box alert-error <%= (typeof errors !== 'undefined' && errors && errors.length > 0) ? '' : 'hidden' %>">
+        <div class="alert-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="alert-content">
+          <ul class="error-list" id="errorList">
+            <% if (typeof errors !== 'undefined' && errors) { %>
+              <% errors.forEach(function(err) { %>
+                <li class="error-item"><%= err %></li>
+              <% }); %>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+
+      <form action="/login" method="POST" class="form auth-form" id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input" 
+              placeholder="sara@mail.com" 
+              value="<%= typeof values !== 'undefined' && values.email ? values.email : '' %>"
+              autocomplete="email"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-wrapper">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input" 
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginSubmitBtn">
+          Log In
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Don't have an account? <a href="/register" class="link-highlight">Register here</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,47 @@
+<%- include('../partials/header', { title, libraryStyles }) %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content library-content">
+  <div class="library-form-container">
+    <a class="library-back-link" href="/library">&larr; Back to library</a>
+    <section class="card library-form-card">
+      <p class="library-eyebrow">LIBRARY PEOPLE</p>
+      <h1 class="page-title"><%= author ? 'Edit author' : 'Add an author' %></h1>
+      <p class="page-subtitle">Keep the author’s name and country up to date.</p>
+
+      <% if (errors.length) { %>
+        <div class="library-alert" role="alert">
+          <% errors.forEach(function(error) { %><p><%= error %></p><% }); %>
+        </div>
+      <% } %>
+
+      <form action="<%= author ? `/library/authors/${author.author_id}/edit` : '/library/authors' %>" method="POST" enctype="multipart/form-data" class="library-form">
+        <label class="form-group">
+          <span class="form-label">Author name</span>
+          <input class="form-input" type="text" name="name" maxlength="100" required value="<%= author ? author.name : '' %>">
+        </label>
+        <label class="form-group">
+          <span class="form-label">Country</span>
+          <input class="form-input" type="text" name="country" maxlength="80" required value="<%= author ? author.country : '' %>">
+        </label>
+        <label class="form-group">
+          <span class="form-label">Author photo <span class="library-field-note">(optional, JPEG / PNG / WebP, up to 5 MB)</span></span>
+          <input class="form-input library-file-input" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+        </label>
+        <% if (author && author.photo_image) { %>
+          <div class="library-current-image">
+            <span class="form-label">Current photo</span>
+            <img class="library-form-preview library-author-photo" src="/uploads/library/<%= author.photo_image %>" alt="Current photo of <%= author.name %>">
+            <span class="library-field-note">Choose a new image to replace it. Leave the upload empty to keep this photo.</span>
+          </div>
+        <% } %>
+        <div class="library-form-actions">
+          <a class="btn btn-outline" href="/library">Cancel</a>
+          <button class="btn btn-primary" type="submit"><%= author ? 'Save changes' : 'Add author' %></button>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

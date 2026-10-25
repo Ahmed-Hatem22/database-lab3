@@ -1,0 +1,183 @@
+<%- include('partials/header', { title: 'Study Dashboard | Student Study System' }) %>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+  <div class="dashboard-container">
+    
+    <!-- Top Welcome & Summary Header -->
+    <section class="dashboard-header">
+      <div class="dashboard-title-group">
+        <h1 class="page-title">Study Task Manager</h1>
+        <p class="page-subtitle">Track your coursework, reading assignments, and lab deadlines.</p>
+      </div>
+
+      <!-- Quick Stats Badges (Bonus: Counter) -->
+      <% 
+        const totalCount = todos.length;
+        const doneCount = todos.filter(t => t.is_done === 1 || t.is_done === true).length;
+        const openCount = totalCount - doneCount;
+        const percent = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+      %>
+      <div class="stats-card">
+        <div class="stat-item">
+          <span class="stat-number" id="openCountBadge"><%= openCount %></span>
+          <span class="stat-label">Tasks Open</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="doneCountBadge"><%= doneCount %></span>
+          <span class="stat-label">Completed</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number"><%= percent %>%</span>
+          <span class="stat-label">Progress</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error Alerts Box (for Add / Edit errors) -->
+    <div id="todoErrorAlertBox" class="alert-box alert-error <%= (typeof errors !== 'undefined' && errors && errors.length > 0) ? '' : 'hidden' %>">
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="alert-content">
+        <ul class="error-list" id="todoErrorList">
+          <% if (typeof errors !== 'undefined' && errors) { %>
+            <% errors.forEach(function(err) { %>
+              <li class="error-item"><%= err %></li>
+            <% }); %>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Add To-Do Card (R4) -->
+    <div class="card add-todo-card">
+      <form action="/todos/add" method="POST" class="add-todo-form" id="addTodoForm" novalidate>
+        <div class="input-with-action">
+          <input 
+            type="text" 
+            name="title" 
+            id="todoTitleInput"
+            class="form-input todo-input" 
+            placeholder="What needs to be done?" 
+            value="<%= typeof inputTitle !== 'undefined' ? inputTitle : '' %>"
+            maxlength="200"
+            autocomplete="off"
+          >
+          <button type="submit" class="btn btn-primary btn-add" id="addTodoBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Search & Filter Controls (Bonus) -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search study tasks..." aria-label="Search study tasks">
+      </div>
+
+      <div class="filter-pills" role="tablist">
+        <button type="button" class="filter-pill active" data-filter="all">All (<%= totalCount %>)</button>
+        <button type="button" class="filter-pill" data-filter="open">Open (<%= openCount %>)</button>
+        <button type="button" class="filter-pill" data-filter="done">Completed (<%= doneCount %>)</button>
+      </div>
+    </div>
+
+    <!-- To-Do List Container -->
+    <div class="todos-wrapper">
+      <!-- Empty State View (R10) -->
+      <div id="emptyState" class="empty-state-card <%= todos.length === 0 ? '' : 'hidden' %>">
+        <div class="empty-state-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <h3 class="empty-title">No study tasks yet!</h3>
+        <p class="empty-desc">Add your first reading assignment, lab deadline, or exam prep above to get organized.</p>
+      </div>
+
+      <!-- No Search Results State -->
+      <div id="noMatchState" class="empty-state-card hidden">
+        <h3 class="empty-title">No matching tasks</h3>
+        <p class="empty-desc">Try searching for a different keyword or switch your filter.</p>
+      </div>
+
+      <!-- Task Items List -->
+      <ul class="todo-list" id="todoList">
+        <% todos.forEach(function(todo) { %>
+          <% const isDone = (todo.is_done === 1 || todo.is_done === true); %>
+          <li class="todo-item <%= isDone ? 'is-done' : '' %>" data-id="<%= todo.todo_id %>" data-status="<%= isDone ? 'done' : 'open' %>">
+            
+            <!-- Toggle Checkbox Form (R6) -->
+            <form action="/todos/<%= todo.todo_id %>/toggle" method="POST" class="toggle-form">
+              <input type="hidden" name="is_done" value="<%= isDone ? 0 : 1 %>">
+              <button 
+                type="submit" 
+                class="todo-status-btn <%= isDone ? 'status-done' : 'status-open' %>" 
+                title="<%= isDone ? 'Mark as open' : 'Mark as done' %>"
+                aria-label="<%= isDone ? 'Mark as open' : 'Mark as done' %>"
+              >
+                <% if (isDone) { %>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                <% } else { %>
+                  <span class="circle-indicator"></span>
+                <% } %>
+              </button>
+            </form>
+
+            <!-- Edit Form (R5: Edit its title + Save) -->
+            <form action="/todos/<%= todo.todo_id %>/edit" method="POST" class="edit-todo-form">
+              <input 
+                type="text" 
+                name="title" 
+                class="todo-title-input" 
+                value="<%= (typeof editTodoId !== 'undefined' && editTodoId === todo.todo_id && typeof editTitle !== 'undefined') ? editTitle : todo.title %>"
+                maxlength="200"
+                aria-label="Edit study task title"
+              >
+              <div class="todo-actions">
+                <button type="submit" class="btn btn-outline btn-sm btn-save" title="Save changes">
+                  Save
+                </button>
+              </div>
+            </form>
+
+            <!-- Delete Form (R7: Delete it with 'Are you sure?' confirmation) -->
+            <form 
+              action="/todos/<%= todo.todo_id %>/delete" 
+              method="POST" 
+              class="delete-todo-form"
+              onsubmit="return confirm('Are you sure?');"
+            >
+              <button type="submit" class="btn btn-danger-outline btn-sm btn-delete" title="Delete study task">
+                Delete
+              </button>
+            </form>
+
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+
+  </div>
+</main>
+
+<%- include('partials/footer') %>
