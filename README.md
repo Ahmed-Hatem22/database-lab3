@@ -1,55 +1,90 @@
-# Database Lab 3 — Part II: Library
+# Database Lab 3: Foreign Keys and Simple SQL
 
 **Student:** Ahmed Hatem  
 **Student ID:** 2304158  
-**Course:** Introduction to Database Systems — Alexandria National University, Faculty of Engineering
+**Course:** Introduction to Database Systems — Alexandria National University, Faculty of Engineering  
 
-This submission implements Part II (Problem 2) of Lab 3. The website continues the Lab 2 Node.js/Express application and adds a library section. The books/authors feature uses its own `library` MySQL database; the Lab 2 study planner keeps using the separate `registration` database.
+---
 
-## Deliverables
+## Deliverables in this repository
 
-- `problem2_DDL.sql` — creates the `library` database and its `author` and `book` tables. Deleting an author cascades to their books.
-- `problem2_DML.sql` — inserts 3 authors and 6 books.
-- `website/` — the Lab 2 Node.js/Express/EJS website with the Lab 3 Library pages and CRUD routes.
+As specified in the lab assignment sheet, all deliverables are located in the repository folder:
 
-## Requirements covered
+- `problem1_DDL.sql` — DDL scripts creating the `company` database and tables (`EMPLOYEE`, `DEPARTMENT`, `PROJECT`) with primary and foreign keys.
+- `problem1_DML.sql` — INSERT statements inserting at least 3 records in each table.
+- `problem1_Answers.txt` — SQL queries, execution output/errors, and explanations for questions Q1.1, Q1.2, and Q1.3.
+- `problem2_DDL.sql` — DDL scripts creating the `library` database and tables (`author`, `book`) with foreign keys and `ON DELETE CASCADE`.
+- `problem2_DML.sql` — Seed data (INSERT) for testing: 3 authors and 6 books.
+- `website/` — The extended Lab 2 Node.js/Express/EJS website with the Lab 3 Library pages and CRUD routes.
+- `README.md` — Step-by-step instructions on running and testing all scripts and the web application.
 
-- Displays all books, including each book's `author_id`, and all authors.
-- Adds and edits books and authors.
-- Removes books and authors. Author deletion uses the database's `ON DELETE CASCADE` rule to remove that author's books.
-- Uploads optional JPEG, PNG, or WebP cover images and author photos (maximum 5 MB each). Replacing or deleting a record also cleans up its uploaded image.
-- Uses parameterized SQL and server-side input validation.
+---
 
-## Run the database scripts
+## Part I: Problem 1 — The COMPANY Database
 
-Install MySQL 8 and open PowerShell in this folder. Create the schema, then load the sample records:
+### 1. Run the Database Scripts (Problem 1)
+
+Open PowerShell or your command prompt in this directory and execute:
 
 ```powershell
+# 1. Build the company database and tables
+Get-Content .\problem1_DDL.sql | mysql -u root -p
+
+# 2. Insert records into EMPLOYEE, DEPARTMENT, and PROJECT
+Get-Content .\problem1_DML.sql | mysql -u root -p
+```
+
+Or directly via MySQL CLI:
+```sh
+mysql -u root -p < problem1_DDL.sql
+mysql -u root -p < problem1_DML.sql
+```
+
+### 2. Verify Problem 1 Answers
+
+Refer to `problem1_Answers.txt` for:
+- **Q1.1:** Deleting a referenced EMPLOYEE row referenced by DEPARTMENT (demonstrating referential integrity restriction).
+- **Q1.2:** Inserting a PROJECT referencing a non-existent DEPARTMENT (demonstrating foreign key violation).
+- **Q1.3:** Handling initial insertions when `mgr_ssn` and `Dno` are both `NOT NULL` (circular foreign keys).
+
+---
+
+## Part II: Problem 2 — Library (Books and Authors)
+
+### 1. Run the Database Scripts (Problem 2)
+
+```powershell
+# 1. Build the library database and tables
 Get-Content .\problem2_DDL.sql | mysql -u root -p
+
+# 2. Insert seed authors and books
 Get-Content .\problem2_DML.sql | mysql -u root -p
 ```
 
-The DDL drops and recreates only the `library` database. Do not run it if you need to preserve existing data in a database with that name.
+Or directly via MySQL CLI:
+```sh
+mysql -u root -p < problem2_DDL.sql
+mysql -u root -p < problem2_DML.sql
+```
 
-The DDL includes the nullable image columns used for uploads. If you already created the earlier Lab 3 schema, rerun the DDL and then reload the seed data before starting the updated website.
+### 2. Configure and Run the Website
 
-## Configure and run the website
-
-1. Install Node.js 18 or newer and ensure the MySQL server is running.
-2. Open a terminal in `website/` and install the project dependencies:
+1. Install Node.js 18 or newer and make sure your MySQL server is running.
+2. Navigate into the `website/` directory and install dependencies:
 
    ```sh
+   cd website
    npm install
    ```
 
-3. Copy `.env.example` to `.env` and set your MySQL credentials:
+3. Configure your environment variables:
+   Copy `.env.example` to `.env` and fill in your MySQL credentials:
 
    ```powershell
    Copy-Item .env.example .env
    ```
 
-   For example, configure:
-
+   Example `.env`:
    ```env
    PORT=3000
    SESSION_SECRET=replace_with_a_long_random_secret
@@ -61,20 +96,30 @@ The DDL includes the nullable image columns used for uploads. If you already cre
    LIBRARY_DB_NAME=library
    ```
 
-   `DB_NAME` is used by the existing Lab 2 study planner. The new Library pages connect to `LIBRARY_DB_NAME`.
-
 4. Start the server:
 
    ```sh
    npm start
    ```
 
-5. Open `http://localhost:3000/library`. Use the **Library** link in the site header to return to this page from the existing Lab 2 site.
+5. Open your browser at:
+   - `http://localhost:3000/library` — Access the Library system directly.
+   - Use the **Library** link in the navigation header to switch between the Study Planner and the Library system.
 
-## Tests
+---
 
-From `website/`, run:
+## Running the Automated Test Suite
+
+From the `website/` directory, run:
 
 ```sh
 npm test
 ```
+
+This executes 19 automated unit and integration tests covering:
+- Password hashing (bcrypt) and authentication
+- Input validation for registration, login, and tasks
+- Library tables rendering (books with `author_id`, authors)
+- Book CRUD (Add, Edit, Delete)
+- Author CRUD (Add, Edit, Delete with cascade book deletion)
+- Image uploads (validation of mime types and magic bytes, cover image, photo image, and file cleanup)

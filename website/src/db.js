@@ -1,5 +1,6 @@
+const path = require('path');
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // In-memory data store for fallback/demo/mock mode
 const mockUsers = [
